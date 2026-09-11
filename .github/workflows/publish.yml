@@ -1,0 +1,31 @@
+# Publish @immibuddy/resilient-rpc to GitHub Packages.
+# Trigger: push a tag like resilient-rpc-v1.0.0 (tag version must match package.json).
+name: Publish resilient-rpc
+
+on:
+  push:
+    tags: ["resilient-rpc-v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: resilient-rpc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://npm.pkg.github.com
+          scope: "@immibuddy"
+      - run: npm ci
+      - run: npm test
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
