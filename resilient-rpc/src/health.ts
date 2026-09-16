@@ -41,7 +41,9 @@ function buildReadinessPayload(ctx: HealthContext): { body: HealthResponse; stat
   const cbStates: Record<string, string> = {};
   if (ctx.circuitBreakers) {
     for (const [name, getState] of Object.entries(ctx.circuitBreakers)) {
-      cbStates[name] = getState();
+      const state = getState();
+      cbStates[name] = state;
+      if (state !== CircuitState.CLOSED) allReady = false;
     }
   }
 

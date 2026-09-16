@@ -1,0 +1,33 @@
+{
+  "name": "@immibuddy/message-broker",
+  "version": "1.0.0",
+  "description": "Shared RabbitMQ connection, publisher, consumer and topology for Immibuddy microservices",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/IMMIBUDDY-INC/shared-packages.git",
+    "directory": "message-broker"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "test": "npm run build && node --test 'test/**/*.test.js'",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "amqplib": "^0.10.8"
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.10.7",
+    "@types/node": "^20.17.0",
+    "typescript": "^5.6.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "UNLICENSED"
+}

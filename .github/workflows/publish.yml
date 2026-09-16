@@ -1,11 +1,18 @@
-# Publish @immibuddy/resilient-rpc to GitHub Packages.
-# Trigger: push a tag like resilient-rpc-v1.0.0 (tag version must match package.json).
-name: Publish resilient-rpc
+# Publish a shared package to GitHub Packages.
+# Trigger: push a tag like <package>-v1.0.0, e.g. resilient-rpc-v1.0.0 or
+# message-broker-v1.0.0 (tag version must match that package's package.json).
+name: Publish package
 
 on:
   push:
-    tags: ["resilient-rpc-v*"]
+    tags: ["resilient-rpc-v*", "message-broker-v*"]
   workflow_dispatch:
+    inputs:
+      package:
+        description: "Package directory to publish"
+        required: true
+        type: choice
+        options: [resilient-rpc, message-broker]
 
 permissions:
   contents: read
@@ -14,9 +21,9 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: resilient-rpc
+    env:
+      # tag "message-broker-v1.0.0" -> "message-broker"; manual runs use the input
+      PACKAGE: ${{ inputs.package || '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -24,8 +31,17 @@ jobs:
           node-version: 20
           registry-url: https://npm.pkg.github.com
           scope: "@immibuddy"
+      - name: Resolve package directory
+        run: |
+          if [ -z "$PACKAGE" ]; then
+            PACKAGE="${GITHUB_REF_NAME%-v*}"
+          fi
+          echo "PACKAGE=$PACKAGE" >> "$GITHUB_ENV"
       - run: npm ci
+        working-directory: ${{ env.PACKAGE }}
       - run: npm test
+        working-directory: ${{ env.PACKAGE }}
       - run: npm publish
+        working-directory: ${{ env.PACKAGE }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
