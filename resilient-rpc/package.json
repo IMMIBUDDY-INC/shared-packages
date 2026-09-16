@@ -15,7 +15,7 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
-    "test": "npm run build && node --test 'test/**/*.test.js'",
+    "test": "npm run build && node --test test/health.test.js test/rpc-client.test.js",
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
