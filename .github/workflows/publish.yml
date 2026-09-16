@@ -1,12 +1,3 @@
-# Publish a shared package to npmjs.com (public, under the @immibuddy scope).
-# Trigger: push a tag like <package>-v1.0.0, e.g. resilient-rpc-v1.0.0 or
-# message-broker-v1.0.0 (tag version must match that package's package.json).
-#
-# Auth: NPM_TOKEN repo secret (granular access token, read+write on @immibuddy).
-# Once a package exists on npm you can switch it to Trusted Publishing (no token):
-# npmjs.com -> package -> Settings -> Trusted Publisher -> GitHub Actions,
-# repo IMMIBUDDY-INC/shared-packages, workflow publish.yml. The id-token
-# permission below is already in place for that.
 name: Publish package
 
 on:
