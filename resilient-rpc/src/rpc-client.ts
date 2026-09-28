@@ -1,7 +1,7 @@
-import * as crypto from 'crypto';
-import { CircuitBreaker, CircuitOpenError } from './circuit-breaker';
-import { withRetry } from './retry';
-import { getRequestId } from './request-id';
+import * as crypto from "crypto";
+import { CircuitBreaker, CircuitOpenError } from "./circuit-breaker";
+import { withRetry } from "./retry";
+import { getRequestId } from "./request-id";
 import {
   CircuitBreakerOptions,
   CircuitState,
@@ -11,7 +11,7 @@ import {
   RpcRequest,
   RpcResponse,
   DEFAULT_CLIENT_OPTIONS,
-} from './types';
+} from "./types";
 
 export type RedisPublisher = {
   publish(channel: string, message: string): Promise<unknown>;
@@ -39,15 +39,22 @@ export interface CreateResilientClientParams {
 }
 
 export interface ResilientClient {
-  call<T = unknown>(method: string, params?: Record<string, unknown>, timeoutMs?: number): Promise<T>;
+  call<T = unknown>(
+    method: string,
+    params?: Record<string, unknown>,
+    timeoutMs?: number,
+  ): Promise<T>;
   getCircuitState(): CircuitState;
 }
 
 /** Error returned by the remote handler (business error). Does not count against the circuit breaker. */
 export class RpcRemoteError extends Error {
-  constructor(message: string, public readonly method: string) {
+  constructor(
+    message: string,
+    public readonly method: string,
+  ) {
     super(message);
-    this.name = 'RpcRemoteError';
+    this.name = "RpcRemoteError";
   }
 }
 
@@ -58,12 +65,14 @@ type Pending = {
   replyChannel: string;
 };
 
-export function createResilientRpcClient(opts: CreateResilientClientParams): ResilientClient {
+export function createResilientRpcClient(
+  opts: CreateResilientClientParams,
+): ResilientClient {
   const { channel, redis, logger = noopLogger } = opts;
-  const defaultTimeoutMs = opts.timeoutMs ?? DEFAULT_CLIENT_OPTIONS.defaultTimeoutMs;
+  const defaultTimeoutMs =
+    opts.timeoutMs ?? DEFAULT_CLIENT_OPTIONS.defaultTimeoutMs;
   const breaker = new CircuitBreaker(channel, opts.circuitBreaker);
 
-  // One 'message' listener per client, replies routed by id.
   const pending = new Map<string, Pending>();
   const attachedTo = new WeakSet<RedisSubscriber>();
 
@@ -81,9 +90,8 @@ export function createResilientRpcClient(opts: CreateResilientClientParams): Res
   };
 
   function ensureListener(sub: RedisSubscriber) {
-    // ponytail: subscriber instance can be swapped by closeRedis/initRedis, so key on the instance
     if (attachedTo.has(sub)) return;
-    sub.on('message', onMessage);
+    sub.on("message", onMessage);
     attachedTo.add(sub);
   }
 
@@ -113,7 +121,10 @@ export function createResilientRpcClient(opts: CreateResilientClientParams): Res
         resolve: settle(resolve),
         reject: settle(reject),
         replyChannel,
-        timer: setTimeout(() => settle(reject)(new Error('RPC timeout')), timeoutMs),
+        timer: setTimeout(
+          () => settle(reject)(new Error("RPC timeout")),
+          timeoutMs,
+        ),
       });
 
       const req: RpcRequest = { id, method, params, replyTo: replyChannel };
@@ -121,18 +132,24 @@ export function createResilientRpcClient(opts: CreateResilientClientParams): Res
       const rpcSecret = process.env.RPC_SECRET || process.env.RPC_HMAC_SECRET;
       if (rpcSecret) {
         req.timestamp = Date.now();
-        // Must sign exactly what is sent (server signs req.params as received).
+        
         const payload = `${id}:${method}:${JSON.stringify(params)}:${req.timestamp}`;
-        req.signature = crypto.createHmac('sha256', rpcSecret).update(payload).digest('hex');
+        req.signature = crypto
+          .createHmac("sha256", rpcSecret)
+          .update(payload)
+          .digest("hex");
       }
 
-      sub.subscribe(replyChannel)
+      sub
+        .subscribe(replyChannel)
         .then(() => pub.publish(channel, JSON.stringify(req)))
         .catch(settle(reject));
     });
   }
 
-  function injectRequestId(params: Record<string, unknown> | undefined): Record<string, unknown> {
+  function injectRequestId(
+    params: Record<string, unknown> | undefined,
+  ): Record<string, unknown> {
     const rid = getRequestId();
     return rid ? { ...(params || {}), _requestId: rid } : { ...(params || {}) };
   }
@@ -155,7 +172,6 @@ export function createResilientRpcClient(opts: CreateResilientClientParams): Res
         breaker.recordSuccess();
         return result as T;
       } catch (err) {
-        // Business errors from the remote handler are not infrastructure failures.
         if (!(err instanceof RpcRemoteError)) breaker.recordFailure();
         throw err;
       }
