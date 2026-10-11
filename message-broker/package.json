@@ -1,6 +1,7 @@
 {
   "name": "@immibuddy/message-broker",
-  "version": "1.0.1",
+  "version": "1.1.0",
+
   "description": "Shared RabbitMQ connection, publisher, consumer and topology for Immibuddy microservices",
   "repository": {
     "type": "git",
