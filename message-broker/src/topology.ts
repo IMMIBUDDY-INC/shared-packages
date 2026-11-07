@@ -8,6 +8,7 @@ export const QUEUES = {
   communityEvents: "community-events",
   embeddingSync: "embedding-sync",
   studentProvisioning: "student-provisioning",
+  referralRewards: "referral-rewards",
 } as const;
 
 export const EMBEDDING_RETRY_QUEUE = "embedding-sync.retry";
@@ -18,6 +19,7 @@ const BINDINGS: Array<[queue: string, pattern: string]> = [
   [QUEUES.communityEvents, "events.payments.#"],
   [QUEUES.embeddingSync, "events.program.#"],
   [QUEUES.studentProvisioning, "events.student.provisioned"],
+  [QUEUES.referralRewards, "events.referral.milestone.updated"],
 ];
 
 export async function assertTopology(channel: Channel): Promise<void> {
