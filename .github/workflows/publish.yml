@@ -19,7 +19,6 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     env:
-      # tag "message-broker-v1.0.0" -> "message-broker"; manual runs use the input
       PACKAGE: ${{ inputs.package || '' }}
     steps:
       - uses: actions/checkout@v4
